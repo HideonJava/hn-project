@@ -12,116 +12,146 @@
         :key="item.value"
         :label="item.label"
         :value="item.value"
-      >
-      </el-option>
+      />
     </el-select>
     <el-button
       type="success"
       icon="el-icon-check"
       circle
       @click="submit((staus = 'user'))"
-    ></el-button>
+    />
     <el-tree
-      :data="data"
       ref="tree"
+      :data="data"
       show-checkbox
       highlight-current
       node-key="ID"
       default-expand-all
       :default-checked-keys="defaultCheckedKey"
       :props="props"
-    >
-    </el-tree>
+    />
     <el-button
       type="success"
       icon="el-icon-check"
       circle
       @click="submit((staus = 'tree'))"
-    ></el-button>
+    />
 
     <el-button
+      v-if="$store.getters.button.includes('add')"
       type="success"
       icon="el-icon-check"
-      v-if="$store.getters.button.includes('add')"
-      >新增</el-button
-    >
+    >新增</el-button>
   </div>
 </template>
 
 <script>
-import path from "path";
-import { deepClone } from "@/utils";
 // import { getRoutes, getRoles, addRole, deleteRole, updateRole } from '@/api/role'
-import { querySingleRouter, updateUserRouter, getAllUser } from "@/api/user";
+import { querySingleRouter, updateUserRouter, getAllUser } from '@/api/user'
 
 export default {
   data() {
     return {
       props: {
-        label: "Name",
-        children: "Chirldren",
+        label: 'Name',
+        children: 'Chirldren'
       },
       data: [],
-      defaultCheckedKey: ["bb782a22-b63f-11ec-803c-fa163e103f95"],
+      defaultCheckedKey: ['bb782a22-b63f-11ec-803c-fa163e103f95'],
       count: 1,
       options: [],
       users: [],
       value: [],
       list: [],
       loading: false,
-      menuId: [],
-    };
+      menuId: []
+    }
   },
   mounted() {
-    this.getRoutes();
+    this.getRoutes()
   },
   methods: {
     async getRoutes() {
-      const users = await getAllUser();
-      this.users = users;
+      const users = await getAllUser()
+      this.users = users
       // 初始化下拉列表值
       this.options = this.users.map((item) => {
-        return { value: `${item.ID}`, label: `${item.Name}` };
-      });
-      console.log("用户下拉列表值", this.options);
+        return { value: `${item.ID}`, label: `${item.Name}` }
+      })
     },
 
     submit(status) {
-      let res = this.$refs.tree.getCheckedNodes()
-      let halfCheckedKeys = this.$refs.tree.getHalfCheckedKeys();
-      if (status === "tree") {
-        // {
-        //   UserID: "";
-        //   Routers: [{ RouterID: "", SubRole: "" }];
-        // }
+      const CheckedNodes = this.$refs.tree.getCheckedNodes()
+      const halfCheckedKeys = this.$refs.tree.getHalfCheckedKeys()
+      if (status === 'tree') {
+        // 提交逻辑
+        const data = {
+          UserID: '', // 拿下拉列表userId
+          Routers: [] // RouterID 二级父类id, SubRole按钮权限给String
+        }
+        // updateUserRouter().then(res => {
 
-        updateUserRouter().then(res =>{
-          console.log(res);
-          console.log(halfCheckedKeys);
-          res.unshift.apply(res, halfCheckedKeys);
-          console.log(res);
+        CheckedNodes.unshift.apply(CheckedNodes, halfCheckedKeys)
+        console.log(CheckedNodes)
+        CheckedNodes.forEach((item) => {
+          data.Routers.push(this.handleTreeData(this.data, item))
         })
+
+        var r = data.Routers.filter(function(s) {
+          if (s === 'undefined') {
+            return s.trim()
+          } else {
+            console.log(s)
+            return s
+          }
+        })
+        console.log(r)
+
+        // })
       } else {
+        // 查询单个逻辑
         querySingleRouter({ ID: this.value }).then((res) => {
-          let treeNode = [];
+          const treeNode = []
           res.forEach((element) => {
             if (element.Chirldren) {
               element.Chirldren.forEach((index) => {
-                if (index.Role !== "") {
-                  var n=JSON.parse(index.Role);
-                  index['Chirldren'] = n;
+                if (index.Role !== '') {
+                  const n = JSON.parse(index.Role)
+                  n['pid'] = index.ID
+                  // console.log();
+                  index['Chirldren'] = n
                 }
-              });
+              })
             }
-            treeNode.push(element);
-          });
-          this.data = treeNode;
-          console.log("加载菜单", res);
-        });
+            treeNode.push(element)
+          })
+          this.data = treeNode
+          console.log('加载菜单', res)
+        })
       }
     },
-  },
-};
+    handleTreeData(data, obj) {
+      let res
+      // data.Routers.push({ RouterID: item.ID, SubRole: item.Chirldren })
+      data.forEach((item) => {
+        if (item.Chirldren) {
+          item.Chirldren.forEach((index) => {
+            if (obj?.ID === index.ID || obj === index.ID) {
+              if (typeof obj === 'string') {
+                res = { RouterID: obj, SubRole: index.Chirldren }
+              } else {
+                res = { RouterID: obj.ID, SubRole: index.Chirldren }
+              }
+            }
+          })
+        }
+      })
+      // console.log(array)
+
+      return res
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped>

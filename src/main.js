@@ -21,7 +21,10 @@ import './utils/error-log' // error log
 import * as filters from './filters' // global filters
 
 import VueApexCharts from 'vue-apexcharts'
- 
+
+// import * as echarts from 'echarts/core'
+// Vue.use(echarts)
+
 Vue.use(VueApexCharts)
 Vue.component('apexchart', VueApexCharts)
 

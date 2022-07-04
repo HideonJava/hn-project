@@ -1,99 +1,139 @@
 <template>
   <div class="dashboard-editor-container">
-    <github-corner class="github-corner" />
 
-    <panel-group @handleSetLineChartData="handleSetLineChartData" />
+    <DateTimePick @transTime="submit" />
 
-    <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
-      <!-- <line-chart :chart-data="lineChartData" /> -->
-      <column />
-    </el-row>
+    <panel-group :group="group" :panel-group="panelGroup" />
 
     <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="8">
+      <el-col :xs="36" :sm="24" :lg="12">
         <div class="chart-wrapper">
-          <raddar-chart />
+          <charts :ref="closeObj.rate" :group="group" />
         </div>
       </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
+      <el-col :xs="36" :sm="24" :lg="12">
         <div class="chart-wrapper">
-          <pie-chart />
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <bar-chart />
+          <pie-charts :ref="closeObj.pie" :group="group" />
         </div>
       </el-col>
     </el-row>
-
-    <el-row :gutter="8">
-      <el-col :xs="{span: 24}" :sm="{span: 24}" :md="{span: 24}" :lg="{span: 12}" :xl="{span: 12}" style="padding-right:8px;margin-bottom:30px;">
-        <transaction-table />
+    <el-row v-show="group.groupName === '大客户组' || group.groupName === '客户成功组' || group.groupName === '未成交组'" :gutter="32">
+      <el-col :xs="36" :sm="14" :lg="8">
+        <div class="chart-wrapper">
+          <funnel-chart :ref="rankObj.funnel" />
+        </div>
       </el-col>
-      <el-col :xs="{span: 24}" :sm="{span: 12}" :md="{span: 12}" :lg="{span: 6}" :xl="{span: 6}" style="margin-bottom:30px;">
-        <todo-list />
+      <el-col :xs="36" :sm="14" :lg="8">
+        <div class="chart-wrapper">
+          <trans-chart :ref="rankObj.trans" />
+        </div>
       </el-col>
-      <el-col :xs="{span: 24}" :sm="{span: 12}" :md="{span: 12}" :lg="{span: 6}" :xl="{span: 6}" style="margin-bottom:30px;">
-        <box-card />
+      <el-col :xs="36" :sm="14" :lg="8">
+        <div class="chart-wrapper">
+          <a-rank-chart :ref="rankObj.arank" />
+        </div>
+      </el-col>
+    </el-row>
+    <el-row :gutter="32">
+      <el-col :xs="36" :sm="24" :lg="24">
+        <div class="chart-wrapper">
+          <report-chart :group="group" />
+        </div>
+      </el-col>
+    </el-row>
+    <el-row :gutter="32">
+      <el-col :xs="36" :sm="24" :lg="24">
+        <div class="chart-wrapper">
+          <closed-chart :group="group" />
+        </div>
       </el-col>
     </el-row>
   </div>
 </template>
 
 <script>
-import GithubCorner from '@/components/GithubCorner'
-import PanelGroup from './components/PanelGroup'
-import LineChart from './components/LineChart'
-import RaddarChart from './components/RaddarChart'
-import PieChart from './components/PieChart'
-import BarChart from './components/BarChart'
-import TransactionTable from './components/TransactionTable'
-import TodoList from './components/TodoList'
-import BoxCard from './components/BoxCard'
-import Column from './components/Column'
-
-const lineChartData = {
-  newVisitis: {
-    expectedData: [100, 120, 161, 134, 105, 160, 165],
-    actualData: [120, 82, 91, 154, 162, 140, 145]
-  },
-  messages: {
-    expectedData: [200, 192, 120, 144, 160, 130, 140],
-    actualData: [180, 160, 151, 106, 145, 150, 130]
-  },
-  purchases: {
-    expectedData: [80, 100, 121, 104, 105, 90, 100],
-    actualData: [120, 90, 100, 138, 142, 130, 130]
-  },
-  shoppings: {
-    expectedData: [130, 140, 141, 142, 145, 150, 160],
-    actualData: [120, 82, 91, 154, 162, 140, 130]
-  }
-}
+import Charts from './components/charts'
+import PieCharts from './components/pieCharts'
+import TransChart from './components/transChart'
+import ARankChart from './components/aRankChart'
+import ClosedChart from './components/closedChart'
+import FunnelChart from './components/funnelChart'
+import ReportChart from './components/reportChart'
+import DateTimePick from '@/components/DateTimePick/index'
+import PanelGroup from '@/components/PanelGroup/PanelGroup'
+import { GetCaseTotal, GetOutRate } from '@/api/charts'
+import { memberCloseRate, memberRankPoint } from './center/data'
 
 export default {
   name: 'DashboardAdmin',
   components: {
-    GithubCorner,
     PanelGroup,
-    LineChart,
-    RaddarChart,
-    PieChart,
-    BarChart,
-    TransactionTable,
-    TodoList,
-    BoxCard,
-    Column
+    Charts,
+    PieCharts,
+    TransChart,
+    DateTimePick,
+    ARankChart,
+    ClosedChart,
+    ReportChart,
+    FunnelChart
   },
   data() {
     return {
-      lineChartData: lineChartData.newVisitis
+      group: {
+        startDate: '',
+        endDate: '',
+        groupName: ''
+      },
+      rankObj: {
+        trans: 'trans',
+        funnel: 'funnel',
+        arank: 'arank'
+      },
+      closeObj: {
+        rate: 'rate',
+        pie: 'pie'
+      },
+      panelGroup: [
+        { icon: 'bug', title: '闭环故障总量', val: 0, decimals: '', suffix: '' },
+        { icon: 'bug', title: '报告故障总数', val: 0, decimals: '', suffix: '' },
+        { icon: 'list', title: '报告需求总数', val: 0, decimals: '', suffix: '' },
+        { icon: 'form', title: '故障总体流出率', val: 0, decimals: 2, suffix: '%' }
+      ]
     }
   },
   methods: {
-    handleSetLineChartData(type) {
-      this.lineChartData = lineChartData[type]
+    async submit(data) {
+      const { startDate, endDate, groupName } = data
+      this.group.startDate = startDate
+      this.group.endDate = endDate
+      this.group.groupName = groupName
+      try {
+        await memberCloseRate(data).then(res => {
+          Object.keys(this.closeObj).forEach((key) => {
+            this.$refs[this.closeObj[key]].initChart(res)
+          })
+        })
+
+        if (groupName === '大客户组' || groupName === '客户成功组' || groupName === '未成交组') {
+          await memberRankPoint({ startDate, endDate, groupName, isDesc: 'false' }).then(res => {
+            Object.keys(this.rankObj).forEach((key) => {
+              this.$refs[this.rankObj[key]].initChart(res)
+            })
+          })
+        }
+
+        await GetCaseTotal(data).then(res => {
+          this.panelGroup[0].val = res.Finished
+          this.panelGroup[1].val = res.ReportCase
+          this.panelGroup[2].val = res.ReportNeed
+        })
+
+        await GetOutRate(data).then(res => {
+          this.panelGroup[3].val = res
+        })
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 }
@@ -105,13 +145,6 @@ export default {
   background-color: rgb(240, 242, 245);
   position: relative;
 
-  .github-corner {
-    position: absolute;
-    top: 0px;
-    border: 0;
-    right: 0;
-  }
-
   .chart-wrapper {
     background: #fff;
     padding: 16px 16px 0;
@@ -119,7 +152,7 @@ export default {
   }
 }
 
-@media (max-width:1024px) {
+@media (max-width: 1024px) {
   .chart-wrapper {
     padding: 8px;
   }

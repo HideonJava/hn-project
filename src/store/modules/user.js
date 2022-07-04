@@ -1,11 +1,14 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, logout, GetUserInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
+import md5 from 'md5'
 
 const state = {
   token: getToken(),
+  userId: '',
   name: '',
   avatar: '',
+  department: '',
   introduction: '',
   roles: [],
   button: []
@@ -29,20 +32,27 @@ const mutations = {
   },
   SET_BUTTON: (state, button) => {
     state.button = button
+  },
+  SET_ID: (state, userId) => {
+    state.userId = userId
+  },
+  SET_DEPART: (state, department) => {
+    state.department = department
   }
 }
 
 const actions = {
   // user login
   login({ commit }, userInfo) {
-    const { Mobile, PassWord } = userInfo
+    let { Mobile, PassWord } = userInfo
+    PassWord = md5(PassWord).toUpperCase()
     return new Promise((resolve, reject) => {
       login({ Mobile: Mobile.trim(), PassWord: PassWord }).then(response => {
         const { Token, Name } = response
         commit('SET_TOKEN', Token)
         commit('SET_BUTTON', 'add')
-        commit('SET_AVATAR', "https://s1.videocc.net/live-admin-v3/4f87859c4d56d4cc38fbb5bdc337c30f.ico")
-        commit('SET_INTRODUCTION', "测试嘿嘿")
+        commit('SET_AVATAR', 'https://s1.videocc.net/live-admin-v3/4f87859c4d56d4cc38fbb5bdc337c30f.ico')
+        commit('SET_INTRODUCTION', Name)
         setToken(Token)
         resolve()
       }).catch(error => {
@@ -54,8 +64,12 @@ const actions = {
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      commit('SET_ROLES', 'admin')
-      resolve(state)
+      GetUserInfo().then(res => {
+        commit('SET_ROLES', 'admin')
+        commit('SET_ID', res.ID)
+        commit('SET_DEPART', res.DepartmentName)
+        resolve(state)
+      })
     })
   },
 
@@ -84,6 +98,9 @@ const actions = {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
+      commit('SET_BUTTON', 'add')
+      commit('SET_AVATAR', 'https://s1.videocc.net/live-admin-v3/4f87859c4d56d4cc38fbb5bdc337c30f.ico')
+      commit('SET_INTRODUCTION', '测试嘿嘿')
       removeToken()
       resolve()
     })

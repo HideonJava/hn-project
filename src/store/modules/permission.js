@@ -19,21 +19,25 @@ function hasPermission(roles, route) {
  * 后台查询的菜单数据拼装成路由格式的数据
  * @param routes (resolve: any) => require([`@/views/${view}.vue`], resolve)
  */
- export function generaMenu(routes, data) {
+export function generaMenu(routes, data) {
   data.forEach(item => {
     // alert(JSON.stringify(item))
     const menu = {
-      path: item.Path === '#' ? item.id + '_key' : item.Path,
-      // component: item.component === '#' ? Layout : () => import(`@/views${item.component}`),
-      component: item.Path === '#' ? Layout : (resolve) => require([`@/views${item.Path}/index`], resolve),
+      path: item.Path === '#' ? item.id + '_key' : '/' + item.Path,
+      component: item.ParentNodeID ? (resolve) => require([`@/views/${item.Path}/index`], resolve) : Layout,
       hidden: item.hidden,
-      // redirect: item.redirect,
-      children: [],
+      children: [
+        {
+          path: item.ParentNodeID ? item.id + '_key' : 'index',
+          component: (resolve) => require([`@/views/${item.Path}/index`], resolve),
+          name: item.Name,
+          meta: { title: item.Name, icon: item.Icon, affix: false }
+        }
+      ],
       name: item.Name,
-      // meta: item.meta
-      meta: { title: item.Name, id: item.ID, icon: item.Icon ,roles: ['admin'] }
+      meta: { title: item.Name, id: item.ID, icon: item.Icon, roles: ['admin'] }
     }
-
+    // console.log(menu)
     if (item.Chirldren) {
       generaMenu(menu.children, item.Chirldren)
     }
@@ -80,22 +84,19 @@ const actions = {
       const loadMenuData = []
       // 先查询后台并返回左侧菜单数据并把数据添加到路由
       querySingleRouter().then(res => {
-          console.log(res);
-          Object.assign(loadMenuData, res)
-          const tempAsyncRoutes = Object.assign([], asyncRoutes)
-          // tempAsyncRoutes = asyncRoutes
-          generaMenu(tempAsyncRoutes, loadMenuData)
-          let accessedRoutes
-          if (roles.includes('admin')) {
-            accessedRoutes = tempAsyncRoutes || []
-          } else {
-            accessedRoutes = filterAsyncRoutes(tempAsyncRoutes, roles)
-          }
-          commit('SET_ROUTES', accessedRoutes)
-          resolve(accessedRoutes)
+        Object.assign(loadMenuData, res)
+        const tempAsyncRoutes = Object.assign([], asyncRoutes)
+        // tempAsyncRoutes = asyncRoutes
+        generaMenu(tempAsyncRoutes, loadMenuData)
+        let accessedRoutes
+        if (roles.includes('admin')) {
+          accessedRoutes = tempAsyncRoutes || []
+        } else {
+          accessedRoutes = filterAsyncRoutes(tempAsyncRoutes, roles)
+        }
+        commit('SET_ROUTES', accessedRoutes)
+        resolve(accessedRoutes)
         // generaMenu(asyncRoutes, data)
-      }).catch(error => {
-        console.log(error)
       })
     })
   }

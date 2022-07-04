@@ -3,7 +3,7 @@
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">登录 一下</h3>
       </div>
 
       <el-form-item prop="Mobile">
@@ -47,29 +47,7 @@
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
 
-      <!-- <div style="position:relative">
-        <div class="tips">
-          <span>Username : admin</span>
-          <span>Password : any</span>
-        </div>
-        <div class="tips">
-          <span style="margin-right:18px;">Username : editor</span>
-          <span>Password : any</span>
-        </div>
-
-        <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
-          Or connect with
-        </el-button>
-      </div> -->
     </el-form>
-
-    <!-- <el-dialog title="Or connect with" :visible.sync="showDialog">
-      Can not be simulated on local, so please combine you own business simulation! ! !
-      <br>
-      <br>
-      <br>
-      <social-sign />
-    </el-dialog> -->
   </div>
 </template>
 
@@ -97,8 +75,10 @@ export default {
     }
     return {
       loginForm: {
-        Mobile: '18866668888',
-        PassWord: 'CE675C102E263EA7406F7F9EA860A5F6'
+        // Mobile: '17680260280',
+        // PassWord: 'polyv666'
+        Mobile: '',
+        PassWord: ''
       },
       loginRules: {
         Mobile: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -156,7 +136,7 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          console.log(this.loginForm)
+          // console.log(this.loginForm)
           this.$store.dispatch('user/login', this.loginForm)
             .then(() => {
               this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
@@ -256,7 +236,9 @@ $light_gray:#eee;
 .login-container {
   min-height: 100%;
   width: 100%;
-  background-color: $bg;
+  // background-color: $bg;
+  background-image: url('../../assets/images/login.jpg');
+  background-size: cover;
   overflow: hidden;
 
   .login-form {
@@ -293,7 +275,7 @@ $light_gray:#eee;
 
     .title {
       font-size: 26px;
-      color: $light_gray;
+      color: rgb(255, 255, 255);
       margin: 0px auto 40px auto;
       text-align: center;
       font-weight: bold;

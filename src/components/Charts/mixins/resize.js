@@ -1,4 +1,7 @@
 import { debounce } from '@/utils'
+// import macarons from '../theme/macarons'
+require('../theme/wonderland')
+require('../theme/macarons')
 
 export default {
   data() {

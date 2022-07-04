@@ -36,7 +36,7 @@ export function updateUserRouter(data) {
 export function getAllUser() {
   return request({
     url: '/api/User/GetAllUser',
-    method: 'get',
+    method: 'get'
   })
 }
 
@@ -44,5 +44,20 @@ export function logout() {
   return request({
     url: '/vue-element-admin/user/logout',
     method: 'post'
+  })
+}
+
+export function GetAllDepartment(data) {
+  return request({
+    url: 'api/User/GetAllDepartment',
+    method: 'get',
+    params: data
+  })
+}
+
+export function GetUserInfo() {
+  return request({
+    url: 'api/User/GetUserInfo',
+    method: 'get'
   })
 }
