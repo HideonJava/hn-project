@@ -20,6 +20,11 @@ import './utils/error-log' // error log
 
 import * as filters from './filters' // global filters
 
+import VueApexCharts from 'vue-apexcharts'
+ 
+Vue.use(VueApexCharts)
+Vue.component('apexchart', VueApexCharts)
+
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
