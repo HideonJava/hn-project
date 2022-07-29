@@ -13,7 +13,6 @@ const service = axios.create({
 // request interceptor
 service.interceptors.request.use(
   config => {
-
     if (store.getters.token) {
       config.headers['token'] = getToken()
     }
@@ -40,13 +39,12 @@ service.interceptors.response.use(
       // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
       if (res.ErrorCode === 400 || res.ErrorCode === 4001 || res.ErrorCode === 50014) {
         // to re-login
-        
       }
       return Promise.reject(new Error(res.ErrorMsg || 'Error'))
     } else {
       return res.data
     }
-  },error => {
+  }, error => {
     MessageBox.confirm('token过期', 'Confirm logout', {
       confirmButtonText: '重新登录',
       type: 'warning'

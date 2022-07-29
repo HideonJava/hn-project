@@ -53,7 +53,6 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
-// import SocialSign from './components/SocialSignin'
 
 export default {
   name: 'Login',
@@ -75,10 +74,10 @@ export default {
     }
     return {
       loginForm: {
-        // Mobile: '17680260280',
-        // PassWord: 'polyv666'
-        Mobile: '',
-        PassWord: ''
+        Mobile: '17680260280',
+        PassWord: 'polyv666'
+        // Mobile: '',
+        // PassWord: ''
       },
       loginRules: {
         Mobile: [{ required: true, trigger: 'blur', validator: validateUsername }],
